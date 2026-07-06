@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Folio — PDF Editing Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="loading"><div class="loader-ring"></div><div class="loader-msg" id="loadingMsg">Processing…</div></div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">Folio<b>.</b></span>
+    <span class="brand-tag">/ pdf suite</span>
+  </div>
+  <div class="topbar-right">
+    <div class="file-badge" id="fileBadge"><span class="fb-dot"></span><span id="badgeText">0 files</span></div>
+    <button class="btn sm sec" id="topAddFile" style="border-color:rgba(255,255,255,.25);color:#D0D8F0;background:rgba(255,255,255,.07);" onclick="document.getElementById('fileInput').click()">+ Add PDF</button>
+  </div>
+</header>
+
+<!-- MEGA NAV -->
+<nav class="mega-nav">
+  <div class="mega-row">
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">📂</span>Organize PDF</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="merge"><span class="mn">Merge PDF</span><span class="md">Combine multiple files into one</span></button>
+        <button class="mtool" data-tool="split"><span class="mn">Split PDF</span><span class="md">Extract page ranges into new files</span></button>
+        <button class="mtool" data-tool="organize"><span class="mn">Organize Pages</span><span class="md">Reorder, rotate &amp; delete pages</span></button>
+        <button class="mtool" data-tool="scan"><span class="mn">Scan to PDF</span><span class="md">Convert images into a PDF</span></button>
+      </div>
+    </div>
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">⚡</span>Optimize PDF</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="compress"><span class="mn">Compress PDF</span><span class="md">Reduce file size</span></button>
+        <button class="mtool" data-tool="repair"><span class="mn">Repair PDF</span><span class="md">Rebuild a damaged file</span></button>
+        <button class="mtool" data-tool="ocr"><span class="mn">OCR PDF</span><span class="md">Extract text from scanned pages</span></button>
+      </div>
+    </div>
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">🔄</span>Convert PDF</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="pdf2word"><span class="mn">PDF to Word</span><span class="md">Export text as .txt document</span></button>
+        <button class="mtool" data-tool="pdf2ppt"><span class="mn">PDF to Slides</span><span class="md">Each page as HTML slide</span></button>
+        <button class="mtool" data-tool="pdf2excel"><span class="mn">PDF to Excel / CSV</span><span class="md">Extract tables as CSV</span></button>
+        <div class="mdivider"></div>
+        <button class="mtool" data-tool="img2pdf"><span class="mn">Image to PDF</span><span class="md">JPG / PNG → PDF</span></button>
+        <button class="mtool" data-tool="html2pdf"><span class="mn">HTML to PDF</span><span class="md">Paste markup → PDF</span></button>
+        <button class="mtool" data-tool="pdf2html"><span class="mn">PDF to HTML</span><span class="md">Convert pages to web markup</span></button>
+      </div>
+    </div>
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">✏️</span>Edit PDF</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="edit"><span class="mn">Edit / Annotate</span><span class="md">Add text &amp; drawings on pages</span></button>
+        <button class="mtool" data-tool="watermark"><span class="mn">Watermark</span><span class="md">Stamp text diagonally on all pages</span></button>
+        <button class="mtool" data-tool="rotate"><span class="mn">Rotate Pages</span><span class="md">Fix sideways pages</span></button>
+        <button class="mtool" data-tool="pagenumbers"><span class="mn">Page Numbers</span><span class="md">Add numbering to every page</span></button>
+        <button class="mtool" data-tool="crop"><span class="mn">Crop PDF</span><span class="md">Trim page margins</span></button>
+      </div>
+    </div>
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">🔒</span>PDF Security</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="sign"><span class="mn">Sign PDF</span><span class="md">Draw, type or upload signature</span></button>
+        <button class="mtool" data-tool="unlock"><span class="mn">Unlock PDF</span><span class="md">Remove password protection</span></button>
+        <button class="mtool" data-tool="protect"><span class="mn">Protect PDF</span><span class="md">Add a password</span></button>
+        <button class="mtool" data-tool="compare"><span class="mn">Compare PDF</span><span class="md">Highlight differences between files</span></button>
+      </div>
+    </div>
+    <div class="mcat">
+      <button class="mcat-trigger"><span class="ico">✨</span>AI Tools</button>
+      <div class="mdrop">
+        <button class="mtool" data-tool="summarize"><span class="mn">Summarize PDF</span><span class="md">Get a smart summary of any PDF</span></button>
+        <button class="mtool" data-tool="translate"><span class="mn">Translate PDF</span><span class="md">Convert content to another language</span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO / DROP ZONE -->
+<section class="hero" id="heroSection">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">100% runs in your browser — nothing is uploaded</div>
+    <h1>Every PDF tool<br>you'll ever <i>need.</i></h1>
+    <p class="hero-sub">Drop a PDF to get started — then pick any tool from the menu above. Edit, merge, sign, compress, convert and much more.</p>
+    <div class="dz" id="dropZone">
+      <div class="dz-icon">📄</div>
+      <div class="dz-text">
+        <strong>Drop PDFs here, or click to browse</strong>
+        <span>Supports multiple files — PDF, JPG, PNG accepted</span>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf,image/*" multiple>
+  </div>
+</section>
+
+<!-- TOOL HOME GRID -->
+<div class="tool-home" id="toolHome">
+  <h2>All Tools</h2>
+  <p>Click any tool to get started, or drop a PDF above first.</p>
+
+  <div class="cat-section cat-organize">
+    <div class="cat-header"><div class="ch-icon">📂</div><h3>Organize PDF</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="merge"><div class="tc-icon">🔗</div><div class="tc-name">Merge PDF</div><div class="tc-desc">Combine multiple PDFs into one document</div></div>
+      <div class="tool-card" data-tool="split"><div class="tc-icon">✂️</div><div class="tc-name">Split PDF</div><div class="tc-desc">Extract specific page ranges</div></div>
+      <div class="tool-card" data-tool="organize"><div class="tc-icon">📋</div><div class="tc-name">Organize Pages</div><div class="tc-desc">Drag to reorder, rotate, delete pages</div></div>
+      <div class="tool-card" data-tool="scan"><div class="tc-icon">📷</div><div class="tc-name">Scan to PDF</div><div class="tc-desc">Turn photos or images into a PDF</div></div>
+    </div>
+  </div>
+
+  <div class="cat-section cat-optimize">
+    <div class="cat-header"><div class="ch-icon">⚡</div><h3>Optimize PDF</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="compress"><div class="tc-icon">🗜️</div><div class="tc-name">Compress PDF</div><div class="tc-desc">Reduce file size for sharing</div></div>
+      <div class="tool-card" data-tool="repair"><div class="tc-icon">🔧</div><div class="tc-name">Repair PDF</div><div class="tc-desc">Rebuild and recover damaged files</div></div>
+      <div class="tool-card" data-tool="ocr"><div class="tc-icon">🔍</div><div class="tc-name">OCR PDF</div><div class="tc-desc">Extract text from scanned pages</div></div>
+    </div>
+  </div>
+
+  <div class="cat-section cat-convert">
+    <div class="cat-header"><div class="ch-icon">🔄</div><h3>Convert PDF</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="pdf2word"><div class="tc-icon">📝</div><div class="tc-name">PDF to Word</div><div class="tc-desc">Export text as a document</div></div>
+      <div class="tool-card" data-tool="pdf2ppt"><div class="tc-icon">📊</div><div class="tc-name">PDF to Slides</div><div class="tc-desc">Pages as HTML presentation</div></div>
+      <div class="tool-card" data-tool="pdf2excel"><div class="tc-icon">📈</div><div class="tc-name">PDF to CSV</div><div class="tc-desc">Extract content as spreadsheet</div></div>
+      <div class="tool-card" data-tool="img2pdf"><div class="tc-icon">🖼️</div><div class="tc-name">Image to PDF</div><div class="tc-desc">JPG / PNG → PDF file</div></div>
+      <div class="tool-card" data-tool="html2pdf"><div class="tc-icon">🌐</div><div class="tc-name">HTML to PDF</div><div class="tc-desc">Paste HTML markup → PDF</div></div>
+      <div class="tool-card" data-tool="pdf2html"><div class="tc-icon">💻</div><div class="tc-name">PDF to HTML</div><div class="tc-desc">Convert pages to web markup</div></div>
+    </div>
+  </div>
+
+  <div class="cat-section cat-edit">
+    <div class="cat-header"><div class="ch-icon">✏️</div><h3>Edit PDF</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="edit"><div class="tc-icon">🖊️</div><div class="tc-name">Edit PDF</div><div class="tc-desc">Add text, drawings &amp; annotations</div></div>
+      <div class="tool-card" data-tool="watermark"><div class="tc-icon">💧</div><div class="tc-name">Watermark</div><div class="tc-desc">Stamp text on all pages</div></div>
+      <div class="tool-card" data-tool="rotate"><div class="tc-icon">🔃</div><div class="tc-name">Rotate Pages</div><div class="tc-desc">Fix sideways or upside-down pages</div></div>
+      <div class="tool-card" data-tool="pagenumbers"><div class="tc-icon">🔢</div><div class="tc-name">Page Numbers</div><div class="tc-desc">Add numbering to every page</div></div>
+      <div class="tool-card" data-tool="crop"><div class="tc-icon">✂️</div><div class="tc-name">Crop PDF</div><div class="tc-desc">Trim white margins from pages</div></div>
+    </div>
+  </div>
+
+  <div class="cat-section cat-security">
+    <div class="cat-header"><div class="ch-icon">🔒</div><h3>PDF Security</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="sign"><div class="tc-icon">✍️</div><div class="tc-name">Sign PDF</div><div class="tc-desc">Draw, type or place a signature</div></div>
+      <div class="tool-card" data-tool="unlock"><div class="tc-icon">🔓</div><div class="tc-name">Unlock PDF</div><div class="tc-desc">Remove password from a PDF</div></div>
+      <div class="tool-card" data-tool="protect"><div class="tc-icon">🛡️</div><div class="tc-name">Protect PDF</div><div class="tc-desc">Encrypt with a password</div></div>
+      <div class="tool-card" data-tool="compare"><div class="tc-icon">⚖️</div><div class="tc-name">Compare PDF</div><div class="tc-desc">Spot differences between two files</div></div>
+    </div>
+  </div>
+
+  <div class="cat-section cat-ai">
+    <div class="cat-header"><div class="ch-icon">✨</div><h3>AI Tools</h3></div>
+    <div class="tool-cards">
+      <div class="tool-card" data-tool="summarize"><div class="tc-icon">💡</div><div class="tc-name">Summarize PDF</div><div class="tc-desc">AI-powered smart summary</div></div>
+      <div class="tool-card" data-tool="translate"><div class="tc-icon">🌍</div><div class="tc-name">Translate PDF</div><div class="tc-desc">Translate to any language with AI</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WORKSPACES ===== -->
+
+<!-- ORGANIZE / MERGE -->
+<div class="ws-wrap" id="ws-organize">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2 id="orgTitle">Organize & Merge Pages</h2></div>
+  <p class="ws-sub">Drag thumbnails to reorder • Rotate or delete individual pages • Add more PDFs to merge</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">+ Add PDF</button>
+    <button class="btn sec" id="rotateAllBtn">↻ Rotate All 90°</button>
+    <button class="btn red" id="removeAllBtn">✕ Clear All</button>
+    <button class="btn green" id="buildBtn">⬇ Build &amp; Download</button>
+  </div>
+  <div class="page-grid" id="pageGrid"></div>
+  <div class="empty" id="orgEmpty">No pages yet — drop a PDF above or click Add PDF.</div>
+</div>
+
+<!-- SPLIT -->
+<div class="ws-wrap" id="ws-split">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Split PDF</h2></div>
+  <p class="ws-sub">Define page ranges to extract. Each range becomes its own downloaded PDF file.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn sec" id="addRangeBtn">+ Add Range</button>
+    <button class="btn green" id="splitDownloadBtn">⬇ Split &amp; Download All</button>
+  </div>
+  <div id="splitInfo" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink2);margin-bottom:12px;"></div>
+  <div class="split-list" id="splitList"></div>
+  <div class="empty" id="splitEmpty">Load a PDF first, then define page ranges to split.</div>
+</div>
+
+<!-- SCAN TO PDF -->
+<div class="ws-wrap" id="ws-scan">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Scan / Images to PDF</h2></div>
+  <p class="ws-sub">Add JPG, PNG, WEBP or any image file. Arrange them, then download as a single PDF.</p>
+  <div class="toolbar">
+    <button class="btn sec" id="addImagesBtn">+ Add Images</button>
+    <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+    <button class="btn green" id="scanDownloadBtn">⬇ Download PDF</button>
+  </div>
+  <div class="scan-area">
+    <div class="scan-pages" id="scanPages"></div>
+  </div>
+  <div class="empty" id="scanEmpty">Add images above to convert them into a PDF.</div>
+</div>
+
+<!-- COMPRESS -->
+<div class="ws-wrap" id="ws-compress">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Compress PDF</h2></div>
+  <p class="ws-sub">Removes redundant metadata and re-serializes the PDF to reduce file size. Results vary by original file structure.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="compressBtn">⬇ Compress &amp; Download</button>
+  </div>
+  <div id="compressStats" style="font-size:13px;color:var(--ink2);margin-top:8px;line-height:1.8;"></div>
+  <div class="empty" id="compressEmpty">Load a PDF to compress it.</div>
+</div>
+
+<!-- REPAIR -->
+<div class="ws-wrap" id="ws-repair">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Repair PDF</h2></div>
+  <p class="ws-sub">Attempts to reload and rebuild a damaged or partially-corrupt PDF file.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load Damaged PDF</button>
+    <button class="btn green" id="repairBtn">🔧 Repair &amp; Download</button>
+  </div>
+  <div id="repairStats" style="font-size:13px;color:var(--ink2);margin-top:8px;line-height:1.8;"></div>
+  <div class="empty" id="repairEmpty">Load a PDF to attempt repair.</div>
+</div>
+
+<!-- OCR -->
+<div class="ws-wrap" id="ws-ocr">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>OCR PDF — Extract Text</h2></div>
+  <p class="ws-sub">Renders each page to a canvas and reads the text from it. Works on scanned documents.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="ocrBtn">🔍 Run OCR</button>
+    <button class="btn sec" id="ocrDownloadBtn" disabled>⬇ Download .txt</button>
+  </div>
+  <div class="progress-bar" id="ocrProgress" style="display:none"><div class="progress-fill" id="ocrFill"></div></div>
+  <div class="out-box" id="ocrOut" style="min-height:200px;margin-top:12px;">Extracted text will appear here…</div>
+  <div class="empty" id="ocrEmpty" style="display:none"></div>
+</div>
+
+<!-- PDF TO WORD / TXT -->
+<div class="ws-wrap" id="ws-pdf2word">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>PDF to Word / Text</h2></div>
+  <p class="ws-sub">Extracts text layer from the PDF and saves it as a .txt file you can open in Word or any editor.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="p2wBtn">Extract &amp; Download .txt</button>
+  </div>
+  <div class="out-box" id="p2wOut" style="min-height:160px;margin-top:12px;">Text content will appear here…</div>
+  <div class="empty" id="p2wEmpty" style="display:none"></div>
+</div>
+
+<!-- PDF TO PPT (HTML slides) -->
+<div class="ws-wrap" id="ws-pdf2ppt">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>PDF to Presentation Slides</h2></div>
+  <p class="ws-sub">Converts each PDF page to an HTML slide deck you can open in any browser for presentations.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="p2pptBtn">⬇ Generate HTML Slideshow</button>
+  </div>
+  <div class="empty" id="p2pptEmpty">Load a PDF to convert to slides.</div>
+</div>
+
+<!-- PDF TO EXCEL / CSV -->
+<div class="ws-wrap" id="ws-pdf2excel">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>PDF to CSV / Spreadsheet</h2></div>
+  <p class="ws-sub">Extracts the text content and formats it as comma-separated rows — open in Excel or Google Sheets.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="p2csvBtn">⬇ Download .csv</button>
+  </div>
+  <div class="out-box" id="p2csvOut" style="min-height:120px;margin-top:12px;font-family:monospace;font-size:12px;"></div>
+  <div class="empty" id="p2csvEmpty" style="display:none"></div>
+</div>
+
+<!-- IMAGE TO PDF -->
+<div class="ws-wrap" id="ws-img2pdf">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Image to PDF</h2></div>
+  <p class="ws-sub">Add JPG, PNG, WEBP images. Each image becomes one page in the output PDF.</p>
+  <div class="toolbar">
+    <button class="btn sec" id="addImg2pdfBtn">+ Add Images</button>
+    <input type="file" id="imgInput2" accept="image/*" multiple style="display:none">
+    <button class="btn green" id="img2pdfBtn">⬇ Convert to PDF</button>
+  </div>
+  <div class="page-grid" id="img2pdfGrid"></div>
+  <div class="empty" id="img2pdfEmpty">Add images to convert them to PDF.</div>
+</div>
+
+<!-- HTML TO PDF -->
+<div class="ws-wrap" id="ws-html2pdf">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>HTML to PDF</h2></div>
+  <p class="ws-sub">Paste or type HTML markup below and convert it to a downloadable PDF.</p>
+  <label class="fl">HTML content</label>
+  <textarea class="fi" id="htmlInput" rows="10" placeholder="<h1>Hello</h1><p>Your content here…</p>"></textarea>
+  <div class="toolbar">
+    <button class="btn green" id="html2pdfBtn">⬇ Convert to PDF</button>
+  </div>
+  <div id="htmlPreviewWrap" style="border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:8px;background:#fff;min-height:80px;max-height:340px;overflow:auto;"></div>
+</div>
+
+<!-- PDF TO HTML -->
+<div class="ws-wrap" id="ws-pdf2html">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>PDF to HTML</h2></div>
+  <p class="ws-sub">Extracts text from the PDF and wraps it in clean HTML markup you can download.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="p2htmlBtn">⬇ Download .html</button>
+  </div>
+  <div class="out-box" id="p2htmlOut" style="min-height:160px;margin-top:12px;font-family:monospace;font-size:12px;"></div>
+</div>
+
+<!-- EDIT / ANNOTATE -->
+<div class="ws-wrap" id="ws-edit">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Edit &amp; Annotate PDF</h2></div>
+  <div class="edit-layout">
+    <div>
+      <div class="pg-nav">
+        <button class="btn xs sec" id="prevPage">‹ Prev</button>
+        <span id="pageIndicator" style="font-family:'JetBrains Mono',monospace;font-size:11px;">Page — / —</span>
+        <button class="btn xs sec" id="nextPage">Next ›</button>
+      </div>
+      <div class="canvas-wrap" id="editCanvasWrap">
+        <canvas id="pdfCanvas"></canvas>
+        <div id="annLayer"></div>
+      </div>
+    </div>
+    <div class="edit-side">
+      <div class="side-card">
+        <h4>✏️ Add Text</h4>
+        <label class="fl">Text</label><input class="fi" type="text" id="textInput" placeholder="Type something…">
+        <label class="fl">Color</label><input class="fi" type="color" id="textColor" value="#1B2A4A">
+        <label class="fl">Size: <span id="sizeVal">16</span>px</label>
+        <input type="range" id="textSize" min="8" max="60" value="16">
+        <button class="btn green" style="width:100%" id="placeTextBtn">Click page to place</button>
+      </div>
+      <div class="side-card">
+        <h4>✍️ Signature</h4>
+        <div class="sig-tabs">
+          <button class="on" data-sigmode="draw">Draw</button>
+          <button data-sigmode="type">Type</button>
+        </div>
+        <canvas id="sigPad"></canvas>
+        <input class="fi" type="text" id="typedSig" placeholder="Your name" style="display:none;font-family:'Fraunces',serif;font-style:italic;font-size:20px;text-align:center;">
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn xs sec" id="clearSigBtn" style="flex:1">Clear</button>
+          <button class="btn xs red" id="placeSigBtn" style="flex:1">Place on page</button>
+        </div>
+      </div>
+      <button class="btn green" style="width:100%" id="applyEditBtn">✓ Apply &amp; Download PDF</button>
+    </div>
+  </div>
+  <div class="empty" id="editEmpty">Load a PDF first to annotate it.</div>
+</div>
+
+<!-- WATERMARK -->
+<div class="ws-wrap" id="ws-watermark">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Watermark PDF</h2></div>
+  <p class="ws-sub">Add diagonal text to every page of the PDF.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+  </div>
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start;flex-wrap:wrap;">
+    <div>
+      <div class="side-card">
+        <h4>Watermark Settings</h4>
+        <label class="fl">Text</label><input class="fi" type="text" id="wmText" value="CONFIDENTIAL">
+        <label class="fl">Color</label><input class="fi" type="color" id="wmColor" value="#C1440E">
+        <label class="fl">Opacity: <span id="wmOpacityVal">0.25</span></label>
+        <input type="range" id="wmOpacity" min="0.05" max="1" step="0.05" value="0.25">
+        <label class="fl">Font size: <span id="wmSizeVal">48</span>px</label>
+        <input type="range" id="wmSize" min="12" max="120" value="48">
+        <button class="btn green" id="wmBtn" style="width:100%;margin-top:4px;">⬇ Apply &amp; Download</button>
+      </div>
+    </div>
+    <div class="wm-preview" id="wmPreview"><div style="color:var(--ink2);font-size:13px;">Load a PDF to preview</div></div>
+  </div>
+</div>
+
+<!-- ROTATE -->
+<div class="ws-wrap" id="ws-rotate">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Rotate PDF Pages</h2></div>
+  <p class="ws-sub">Select which pages to rotate and by how much, then download the corrected PDF.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn sec" id="rotSelAll">Select All</button>
+    <button class="btn sec" id="rotSelNone">Select None</button>
+    <select class="fi" id="rotDeg" style="width:130px;margin:0;padding:9px 10px;">
+      <option value="90">90° clockwise</option>
+      <option value="180">180°</option>
+      <option value="270">90° counter-CW</option>
+    </select>
+    <button class="btn green" id="rotateBtn">↻ Rotate &amp; Download</button>
+  </div>
+  <div class="page-grid" id="rotateGrid"></div>
+  <div class="empty" id="rotateEmpty">Load a PDF to rotate its pages.</div>
+</div>
+
+<!-- PAGE NUMBERS -->
+<div class="ws-wrap" id="ws-pagenumbers">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Add Page Numbers</h2></div>
+  <p class="ws-sub">Stamp page numbers onto every page of the PDF.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+  </div>
+  <div style="max-width:360px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:8px;">
+    <h4 style="font-family:'Fraunces',serif;font-size:15px;margin-bottom:14px;">Settings</h4>
+    <label class="fl">Position</label>
+    <div class="pn-pos">
+      <label><input type="radio" name="pnpos" value="bl" checked><span>↙ Bottom Left</span></label>
+      <label><input type="radio" name="pnpos" value="bc"><span>↓ Bottom Centre</span></label>
+      <label><input type="radio" name="pnpos" value="br"><span>↘ Bottom Right</span></label>
+      <label><input type="radio" name="pnpos" value="tl"><span>↖ Top Left</span></label>
+      <label><input type="radio" name="pnpos" value="tc"><span>↑ Top Centre</span></label>
+      <label><input type="radio" name="pnpos" value="tr"><span>↗ Top Right</span></label>
+    </div>
+    <label class="fl">Start from page number</label>
+    <input class="fi" type="number" id="pnStart" value="1" min="1">
+    <label class="fl">Font size</label>
+    <input class="fi" type="number" id="pnFontSize" value="12" min="6" max="36">
+    <label class="fl">Prefix (optional)</label>
+    <input class="fi" type="text" id="pnPrefix" placeholder="e.g. Page ">
+    <button class="btn green" id="pnBtn" style="width:100%">⬇ Add Numbers &amp; Download</button>
+  </div>
+  <div class="empty" id="pnEmpty">Load a PDF to add page numbers.</div>
+</div>
+
+<!-- CROP -->
+<div class="ws-wrap" id="ws-crop">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Crop PDF</h2></div>
+  <p class="ws-sub">Sets the crop box inward from each edge (in pts). 72pts ≈ 1 inch.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+  </div>
+  <div style="display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;margin-top:12px;">
+    <div class="side-card">
+      <h4>Crop Margins (pts)</h4>
+      <label class="fl">Top</label><input class="fi" type="number" id="cropTop" value="0" min="0">
+      <label class="fl">Right</label><input class="fi" type="number" id="cropRight" value="0" min="0">
+      <label class="fl">Bottom</label><input class="fi" type="number" id="cropBottom" value="0" min="0">
+      <label class="fl">Left</label><input class="fi" type="number" id="cropLeft" value="0" min="0">
+      <label class="fl" style="display:flex;align-items:center;gap:8px;margin-bottom:0;">
+        <input type="checkbox" id="cropAll" checked> Apply to all pages
+      </label>
+      <button class="btn green" id="cropBtn" style="width:100%;margin-top:12px;">⬇ Crop &amp; Download</button>
+    </div>
+    <div id="cropPreviewWrap"></div>
+  </div>
+  <div class="empty" id="cropEmpty">Load a PDF to crop.</div>
+</div>
+
+<!-- SIGN -->
+<div class="ws-wrap" id="ws-sign">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Sign PDF</h2></div>
+  <p class="ws-sub">Draw, type or upload your signature then click on the page to place it.</p>
+  <div class="edit-layout">
+    <div>
+      <div class="pg-nav">
+        <button class="btn xs sec" id="signPrevPage">‹ Prev</button>
+        <span id="signPageIndicator" style="font-family:'JetBrains Mono',monospace;font-size:11px;">Page — / —</span>
+        <button class="btn xs sec" id="signNextPage">Next ›</button>
+      </div>
+      <div class="canvas-wrap" id="signCanvasWrap">
+        <canvas id="signCanvas"></canvas>
+        <div id="signAnnLayer"></div>
+      </div>
+    </div>
+    <div class="edit-side">
+      <div class="side-card">
+        <h4>Your Signature</h4>
+        <div class="sig-tabs" id="signTabs">
+          <button class="on" data-signmode="draw">Draw</button>
+          <button data-signmode="type">Type</button>
+          <button data-signmode="upload">Upload</button>
+        </div>
+        <canvas id="sigPad2" style="width:100%;height:110px;border:1px solid var(--line);background:#fff;cursor:crosshair;touch-action:none;display:block;"></canvas>
+        <input class="fi" type="text" id="typedSig2" placeholder="Your name" style="display:none;font-family:'Fraunces',serif;font-style:italic;font-size:20px;text-align:center;">
+        <div id="sigUploadArea" style="display:none;">
+          <button class="btn sec" style="width:100%" id="sigUploadBtn">Upload signature image</button>
+          <input type="file" id="sigImgInput" accept="image/*" style="display:none">
+          <canvas id="sigUploadPreview" style="width:100%;max-height:100px;margin-top:8px;border:1px solid var(--line);display:none;"></canvas>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn xs sec" id="clearSig2Btn" style="flex:1">Clear</button>
+          <button class="btn xs red" id="placeSig2Btn" style="flex:1">Place on page</button>
+        </div>
+      </div>
+      <button class="btn green" style="width:100%" id="applySignBtn">⬇ Save Signed PDF</button>
+    </div>
+  </div>
+  <div class="empty" id="signEmpty">Load a PDF to sign it.</div>
+</div>
+
+<!-- UNLOCK -->
+<div class="ws-wrap" id="ws-unlock">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Unlock PDF</h2></div>
+  <p class="ws-sub">Remove password protection from a PDF you have the rights to open.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load Protected PDF</button>
+  </div>
+  <div style="max-width:340px;margin-top:14px;">
+    <label class="fl">Password (if required)</label>
+    <input class="fi" type="password" id="unlockPwd" placeholder="Enter PDF password">
+    <button class="btn green" id="unlockBtn">🔓 Unlock &amp; Download</button>
+  </div>
+  <div id="unlockStatus" style="margin-top:12px;font-size:13px;"></div>
+  <div class="empty" id="unlockEmpty">Load a PDF to unlock.</div>
+</div>
+
+<!-- PROTECT -->
+<div class="ws-wrap" id="ws-protect">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Protect PDF with Password</h2></div>
+  <p class="ws-sub">Encrypt the PDF so it requires a password to open.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+  </div>
+  <div style="max-width:340px;margin-top:14px;">
+    <div class="row-2">
+      <div>
+        <label class="fl">User password (to open)</label>
+        <input class="fi" type="password" id="protectUser" placeholder="Open password">
+      </div>
+      <div>
+        <label class="fl">Owner password (to edit)</label>
+        <input class="fi" type="password" id="protectOwner" placeholder="Owner password">
+      </div>
+    </div>
+    <button class="btn green" id="protectBtn">🛡️ Protect &amp; Download</button>
+  </div>
+  <div class="empty" id="protectEmpty">Load a PDF to protect.</div>
+</div>
+
+<!-- COMPARE -->
+<div class="ws-wrap" id="ws-compare">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>Compare Two PDFs</h2></div>
+  <p class="ws-sub">Extracts text from both files and highlights additions, deletions and matches line-by-line.</p>
+  <div class="two-col">
+    <div class="col-card">
+      <h4>📄 Document A</h4>
+      <button class="btn sec" id="loadA">Load PDF A</button>
+      <input type="file" id="fileA" accept="application/pdf" style="display:none">
+      <div id="labelA" style="font-size:12px;color:var(--ink2);margin-top:8px;">No file loaded</div>
+    </div>
+    <div class="col-card">
+      <h4>📄 Document B</h4>
+      <button class="btn sec" id="loadB">Load PDF B</button>
+      <input type="file" id="fileB" accept="application/pdf" style="display:none">
+      <div id="labelB" style="font-size:12px;color:var(--ink2);margin-top:8px;">No file loaded</div>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:14px;">
+    <button class="btn green" id="compareBtn">⚖️ Compare Documents</button>
+  </div>
+  <div class="diff-wrap" id="diffOut" style="margin-top:12px;display:none;"></div>
+</div>
+
+<!-- SUMMARIZE -->
+<div class="ws-wrap" id="ws-summarize">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>✨ Summarize PDF with AI</h2></div>
+  <p class="ws-sub">Extracts the full text of your PDF and sends it to Claude AI for a smart, structured summary.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+    <button class="btn green" id="summarizeBtn">✨ Generate Summary</button>
+    <button class="btn sec" id="sumDownloadBtn" disabled>⬇ Download Summary</button>
+  </div>
+  <div id="sumStatus" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--ink2);margin-bottom:10px;"></div>
+  <div class="ai-out" id="sumOut">Your summary will appear here…</div>
+</div>
+
+<!-- TRANSLATE -->
+<div class="ws-wrap" id="ws-translate">
+  <div class="ws-head"><button class="ws-back" onclick="showHome()">← Home</button><h2>🌍 Translate PDF with AI</h2></div>
+  <p class="ws-sub">Extracts text from your PDF and uses Claude AI to translate it into your chosen language.</p>
+  <div class="toolbar">
+    <button class="btn sec" onclick="document.getElementById('fileInput').click()">Load PDF</button>
+  </div>
+  <div style="max-width:700px;margin:12px 0;">
+    <label class="fl">Target Language</label>
+    <div class="lang-grid">
+      <label><input type="radio" name="lang" value="Hindi" checked><span>🇮🇳 Hindi</span></label>
+      <label><input type="radio" name="lang" value="Spanish"><span>🇪🇸 Spanish</span></label>
+      <label><input type="radio" name="lang" value="French"><span>🇫🇷 French</span></label>
+      <label><input type="radio" name="lang" value="German"><span>🇩🇪 German</span></label>
+      <label><input type="radio" name="lang" value="Arabic"><span>🇸🇦 Arabic</span></label>
+      <label><input type="radio" name="lang" value="Chinese"><span>🇨🇳 Chinese</span></label>
+      <label><input type="radio" name="lang" value="Japanese"><span>🇯🇵 Japanese</span></label>
+      <label><input type="radio" name="lang" value="Portuguese"><span>🇧🇷 Portuguese</span></label>
+      <label><input type="radio" name="lang" value="Russian"><span>🇷🇺 Russian</span></label>
+    </div>
+    <div class="toolbar">
+      <button class="btn green" id="translateBtn">🌍 Translate Now</button>
+      <button class="btn sec" id="transDownloadBtn" disabled>⬇ Download Translation</button>
+    </div>
+  </div>
+  <div id="transStatus" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--ink2);margin-bottom:10px;"></div>
+  <div class="ai-out" id="transOut">Translation will appear here…</div>
+</div>
+
+<footer>Folio — all processing is local in your browser. No files are ever sent to a server.</footer>
+<div id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
